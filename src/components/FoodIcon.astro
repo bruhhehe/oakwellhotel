@@ -1,0 +1,95 @@
+---
+// Breakfast illustrations: one 64px grid, 2px ink outline, flat fills from the palette.
+interface Props {
+  name: string;
+  class?: string;
+}
+const { name, class: className } = Astro.props;
+const ink = '#2b2118';
+---
+<svg class={className} viewBox="0 0 64 64" aria-hidden="true" focusable="false" fill="none"
+  stroke={ink} stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+  {name === 'Omelette' && (
+    <>
+      <path d="M8 38c0-12 11-22 24-22s24 10 24 22c0 3-2 5-5 5H13c-3 0-5-2-5-5Z" fill="#f2c14e" />
+      <path d="M14 36c4-8 11-12 18-12" stroke="#fff6d8" stroke-width="2.5" />
+      <path d="M22 33h3M34 29h3M42 35h3" stroke="#3f7a3a" stroke-width="2.5" />
+    </>
+  )}
+  {name === 'Fried Eggs' && (
+    <>
+      <path d="M12 34c-3-11 6-21 17-20 6 0 9 4 15 3 9-1 14 8 11 16-2 8-10 12-19 12-12 0-22-3-24-11Z" fill="#fffdf6" />
+      <circle cx="32" cy="32" r="8" fill="#f2c14e" />
+      <path d="M29 29a4 4 0 0 1 4-2" stroke="#fff6d8" stroke-width="2" />
+    </>
+  )}
+  {name === 'Scrambled Eggs' && (
+    <>
+      <path d="M12 40c-2-6 3-11 8-10 1-5 7-8 12-5 4-4 11-3 13 2 6-1 10 5 7 10-1 5-6 7-11 6-4 3-11 3-15 0-6 2-12 1-14-3Z" fill="#f6cf5c" />
+      <path d="M22 35c2-2 5-2 7 0M34 31c2-2 5-2 7 0M30 41c2-2 5-2 7 0" stroke="#d9a01e" />
+    </>
+  )}
+  {name === 'Boiled Eggs' && (
+    <>
+      <path d="M22 26c0-9 5-16 10-16s10 7 10 16" fill="#fffdf6" />
+      <path d="M20 27h24l-3 10c-1 4-4 6-9 6s-8-2-9-6l-3-10Z" fill="#1d6f82" />
+      <path d="M26 50h12M32 43v7" />
+      <path d="M22 27h20" />
+      <path d="M27 19c1-3 3-5 5-5" stroke="#ecdfc6" />
+    </>
+  )}
+  {name === 'Cheese' && (
+    <>
+      <path d="M8 40 40 18l16 10v14H8v-2Z" fill="#ffd66b" />
+      <path d="M8 40h48" />
+      <circle cx="22" cy="46" r="2.5" fill="#e8b23c" stroke="none" />
+      <circle cx="38" cy="34" r="3" fill="#e8b23c" stroke="none" />
+      <circle cx="46" cy="47" r="2" fill="#e8b23c" stroke="none" />
+    </>
+  )}
+  {name === 'Tomato' && (
+    <>
+      <circle cx="32" cy="35" r="17" fill="#e05a3c" />
+      <path d="M32 18c-3-4-8-4-10-2 3 1 5 3 6 5M32 18c3-4 8-4 10-2-3 1-5 3-6 5M32 18v-5" stroke="#3f7a3a" stroke-width="2.5" />
+      <path d="M22 31c1-4 4-7 8-8" stroke="#f6a08a" stroke-width="2.5" />
+    </>
+  )}
+  {name === 'Masala spices' && (
+    <>
+      <path d="M18 34c3-8 8-11 14-11s11 3 14 11" fill="#e07040" />
+      <path d="M12 34h40c0 10-8 18-20 18S12 44 12 34Z" fill="#fffdf6" />
+      <circle cx="26" cy="29" r="1.2" fill={ink} stroke="none" />
+      <circle cx="36" cy="27" r="1.2" fill={ink} stroke="none" />
+      <circle cx="31" cy="31" r="1.2" fill={ink} stroke="none" />
+      <path d="M44 14c-2 4 2 6 0 10M50 18c-2 3 2 5 0 8" stroke="#c45528" />
+    </>
+  )}
+  {name === 'Mushroom' && (
+    <>
+      <path d="M10 32c0-11 10-18 22-18s22 7 22 18c0 2-2 3-4 3H14c-2 0-4-1-4-3Z" fill="#c8915a" />
+      <path d="M25 35h14v12c0 3-3 5-7 5s-7-2-7-5V35Z" fill="#f6eedf" />
+      <circle cx="24" cy="24" r="2.5" fill="#f6eedf" stroke="none" />
+      <circle cx="38" cy="21" r="2" fill="#f6eedf" stroke="none" />
+    </>
+  )}
+  {name === 'Beans' && (
+    <>
+      <path d="M10 32h44c0 11-10 19-22 19S10 43 10 32Z" fill="#fffdf6" />
+      <ellipse cx="32" cy="32" rx="22" ry="6" fill="#e07040" />
+      <path d="M22 31c1-1 3-1 4 0M30 33c1-1 3-1 4 0M37 30c1-1 3-1 4 0M26 35c1-1 3-1 4 0" stroke="#fbd0b4" />
+    </>
+  )}
+  {name === 'Hash Browns' && (
+    <>
+      <rect x="12" y="19" width="40" height="26" rx="10" fill="#e3a648" />
+      <path d="M20 27l5 3M30 25l4 3M40 28l4 3M22 37l5 2M34 35l4 3" stroke="#b97a28" />
+    </>
+  )}
+  {name === 'Sausages' && (
+    <>
+      <path d="M12 26c4-6 18-9 30-6 8 2 12 6 10 9-2 4-8 4-15 2-8-2-15-1-20 2-5 2-8-2-5-7Z" fill="#c8793a" />
+      <path d="M12 42c4-6 18-9 30-6 8 2 12 6 10 9-2 4-8 4-15 2-8-2-15-1-20 2-5 2-8-2-5-7Z" fill="#b0562c" />
+      <path d="M22 24c4-1 9-1 13 0M22 40c4-1 9-1 13 0" stroke="#f1b98a" />
+    </>
+  )}
+</svg>

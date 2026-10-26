@@ -1,0 +1,960 @@
+---
+import Base from '../layouts/Base.astro';
+import Footer from '../components/Footer.astro';
+import FoodIcon from '../components/FoodIcon.astro';
+import Icon from '../components/Icon.astro';
+import { ADDONS, EGG_COUNTS, EGG_STYLES, NOTES_MAX, NAME_MAX, PRICE, ROOMS, SERVED, SIDES, SIDE_COUNTS } from '../data/menu';
+
+// Where each pick sits on the plate, as % of the plate (x, y) and its size.
+const spots: Record<string, [number, number, number]> = {
+  Cheese: [29, 29, 21],
+  Tomato: [52, 19, 19],
+  'Masala spices': [21, 50, 19],
+  Mushroom: [52, 81, 18],
+  Beans: [29, 72, 23],
+  'Hash Browns': [76, 40, 22],
+  Sausages: [74, 67, 23],
+};
+const eggSpots: [number, number][] = [
+  [46, 47],
+  [58, 41],
+  [53, 58],
+];
+const sideNotes: Record<string, string> = {
+  Beans: 'A scoop on the side',
+  'Hash Browns': '1 to 3',
+  Sausages: '1 or 2',
+};
+---
+<Base
+  title="Breakfast | Oakwell Hotel Blackpool"
+  description="Build your breakfast at Oakwell — eggs your way and classic sides by the sea."
+  page="breakfast"
+>
+  <main id="main" class="breakfast">
+    <div class="wrap">
+      <header class="intro">
+        <h1>Breakfast Menu</h1>
+        <p class="sub">Build your breakfast</p>
+        <ul class="chips" aria-label="Breakfast details">
+          <li><span>Price</span> {PRICE}</li>
+          <li><Icon name="clock" /> <span>Served</span> {SERVED}</li>
+        </ul>
+        <p class="lede">Pick omelette, fried, scrambled or boiled, add toppings, then sides and a note if you like.</p>
+      </header>
+
+      <div class="layout">
+        <form id="order" class="steps" novalidate>
+          <section class="panel tint-sea" aria-labelledby="guest-title">
+            <h2 id="guest-title">Who’s ordering?</h2>
+            <p class="hint-text">So we know which plate is yours</p>
+            <div class="fields">
+              <label class="field">
+                <span>Name</span>
+                <input name="name" type="text" autocomplete="given-name" maxlength={NAME_MAX} placeholder="Your name" required />
+              </label>
+              <label class="field">
+                <span>Room number</span>
+                <select name="room" required>
+                  <option value="">Select room (1–12)</option>
+                  {ROOMS.map((r) => <option value={r}>Room {r}</option>)}
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel tint-yolk" aria-labelledby="eggs-title">
+            <h2 id="eggs-title">Eggs Your Way</h2>
+            <p class="hint-text">Pick one style, then choose 1, 2 or 3 eggs</p>
+            <div class="options" role="radiogroup" aria-labelledby="eggs-title">
+              {EGG_STYLES.map((egg) => (
+                <label class="option">
+                  <input type="radio" name="egg" value={egg} required />
+                  <span class="mark mark-radio" aria-hidden="true"></span>
+                  <span class="label">{egg}</span>
+                  <FoodIcon name={egg} class="food" />
+                </label>
+              ))}
+            </div>
+            <p class="count-label" id="egg-count-label">Number of eggs</p>
+            <div class="segmented" role="radiogroup" aria-labelledby="egg-count-label">
+              {EGG_COUNTS.map((n) => (
+                <label>
+                  <input type="radio" name="eggCount" value={n} checked={n === 2} />
+                  <span>{n}</span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section class="panel tint-peach" aria-labelledby="addons-title">
+            <h2 id="addons-title">Add-ons</h2>
+            <p class="hint-text">Load up your eggs — pick as many as you like</p>
+            <div class="options two">
+              {ADDONS.map((a) => (
+                <label class="option">
+                  <input type="checkbox" name="addons" value={a} />
+                  <span class="mark mark-check" aria-hidden="true"><Icon name="check" /></span>
+                  <span class="label">{a}</span>
+                  <FoodIcon name={a} class="food" />
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section class="panel tint-coral" aria-labelledby="sides-title">
+            <h2 id="sides-title">Sides</h2>
+            <p class="hint-text">Pile on as many as you like — 1 to 3 hash browns, 1 or 2 sausages</p>
+            <div class="options">
+              {SIDES.map((s) => (
+                <div class="side">
+                  <label class="option">
+                    <input type="checkbox" name="sides" value={s} />
+                    <span class="mark mark-check" aria-hidden="true"><Icon name="check" /></span>
+                    <span class="label">{s}<small>{sideNotes[s]}</small></span>
+                    <FoodIcon name={s} class="food" />
+                  </label>
+                  {SIDE_COUNTS[s] && (
+                    <div class="segmented mini" role="radiogroup" aria-label={`How many ${s.toLowerCase()}`} data-count-for={s} hidden>
+                      {SIDE_COUNTS[s]!.map((n) => (
+                        <label>
+                          <input type="radio" name={`count-${s}`} value={n} checked={n === 2} />
+                          <span>{n}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section class="panel tint-cream" aria-labelledby="notes-title">
+            <h2 id="notes-title">Notes</h2>
+            <p class="hint-text">Optional — any extra notes</p>
+            <label class="field">
+              <span class="sr-only">Order notes</span>
+              <textarea name="notes" rows="4" maxlength={NOTES_MAX} placeholder="Anything we should know?"></textarea>
+            </label>
+            <p class="counter" aria-live="polite"><span data-notes-count>0</span>/{NOTES_MAX}</p>
+          </section>
+        </form>
+
+        <aside class="plate-card" aria-labelledby="plate-title">
+          <div class="plate-body" data-state="building">
+            <h2 id="plate-title">Your plate</h2>
+            <p class="status" data-status>Waiting for picks</p>
+
+            <div class="plate" data-plate>
+              <svg class="dish" viewBox="0 0 200 200" aria-hidden="true">
+                <circle cx="100" cy="104" r="94" fill="rgb(43 33 24 / 0.08)" />
+                <circle cx="100" cy="100" r="94" fill="#fffdf8" stroke="#2b2118" stroke-width="2" />
+                <circle cx="100" cy="100" r="70" fill="#fbf6ee" stroke="#ecdfc6" stroke-width="2" />
+              </svg>
+              {eggSpots.map(([x, y], i) => EGG_STYLES.map((egg) => (
+                <span class="item" data-item={egg} data-slot={i + 1} style={`--x:${x}%;--y:${y}%;--s:27%`}>
+                  <FoodIcon name={egg} />
+                </span>
+              )))}
+              {Object.entries(spots).map(([name, [x, y, s]]) => {
+                const copies = SIDE_COUNTS[name as keyof typeof SIDE_COUNTS]?.length ?? 1;
+                return Array.from({ length: copies }, (_, i) => (
+                  <span class="item" data-item={name} data-slot={i + 1} style={`--x:${x + i * 3}%;--y:${y - i * 5}%;--s:${s}%`}>
+                    <FoodIcon name={name} />
+                  </span>
+                ));
+              })}
+              <p class="empty" data-empty>Your plate is empty — pick an egg to start</p>
+            </div>
+
+            <ul class="summary" data-summary aria-live="polite"></ul>
+
+            <button type="submit" form="order" class="btn btn-primary send" data-send>Submit order</button>
+            <p class="send-hint" data-hint>Add your name, room number, and eggs to send</p>
+            <p class="error" role="alert" data-error></p>
+          </div>
+
+          <div class="sent" data-sent hidden tabindex="-1">
+            <FoodIcon name="Fried Eggs" class="sent-icon" />
+            <h2>Order sent!</h2>
+            <p>The kitchen has your plate. Build another if you like.</p>
+            <button type="button" class="btn btn-ghost" data-again>Build another plate</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="dock" data-dock>
+        <p data-dock-text>Add your name, room and eggs</p>
+        <button type="submit" form="order" class="btn btn-primary" data-send>Submit order</button>
+      </div>
+
+      <section class="served">
+        <p>Served {SERVED.replace('–', ' – ')} each morning at Oakwell Hotel Blackpool</p>
+        <a href="/">Back to the hotel</a>
+      </section>
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<script>
+  import { SIDE_COUNTS, validateOrder } from '../data/menu';
+
+  const form = document.getElementById('order') as HTMLFormElement;
+  const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+  const status = $('[data-status]');
+  const summary = $('[data-summary]');
+  const hint = $('[data-hint]');
+  const error = $('[data-error]');
+  const empty = $('[data-empty]');
+  const dockText = $('[data-dock-text]');
+  const sendButtons = document.querySelectorAll<HTMLButtonElement>('[data-send]');
+  const body = $('.plate-body');
+  const sent = $('[data-sent]');
+  const notesCount = $('[data-notes-count]');
+  let sending = false;
+
+  // Remember who is ordering between plates and visits.
+  try {
+    const saved = JSON.parse(localStorage.getItem('oakwell-guest') || '{}');
+    if (saved.name) form.querySelector<HTMLInputElement>('[name="name"]')!.value = saved.name;
+    if (saved.room) form.querySelector<HTMLSelectElement>('[name="room"]')!.value = saved.room;
+  } catch {}
+
+  function read() {
+    const data = new FormData(form);
+    const sides = (data.getAll('sides') as string[]).map((name) =>
+      SIDE_COUNTS[name as keyof typeof SIDE_COUNTS] ? { name, count: Number(data.get(`count-${name}`)) } : { name },
+    );
+    return {
+      name: String(data.get('name') || ''),
+      room: String(data.get('room') || ''),
+      egg: data.get('egg') as string | null,
+      eggCount: Number(data.get('eggCount')),
+      addons: data.getAll('addons') as string[],
+      sides,
+      notes: String(data.get('notes') || ''),
+    };
+  }
+
+  function missing(o: ReturnType<typeof read>) {
+    const m = [];
+    if (!o.name.trim()) m.push('your name');
+    if (!o.room) m.push('room number');
+    if (!o.egg) m.push('eggs');
+    return m;
+  }
+
+  const list = (parts: string[]) =>
+    parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`;
+
+  function update() {
+    const o = read();
+
+    document.querySelectorAll<HTMLElement>('[data-item]').forEach((el) => {
+      const name = el.dataset.item!;
+      const slot = Number(el.dataset.slot);
+      let on = false;
+      if (name === o.egg) on = slot <= o.eggCount;
+      else if (o.addons.includes(name)) on = slot === 1;
+      else {
+        const side = o.sides.find((s) => s.name === name);
+        if (side) on = slot <= (side.count ?? 1);
+      }
+      el.classList.toggle('on', on);
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-count-for]').forEach((el) => {
+      const on = o.sides.some((s) => s.name === el.dataset.countFor);
+      el.hidden = !on;
+    });
+
+    const items: string[] = [];
+    const n = o.eggCount;
+    if (o.egg === 'Omelette') items.push(`${n}-egg omelette`);
+    else if (o.egg) items.push(`${n} ${o.egg.replace(' Eggs', '').toLowerCase()} ${n > 1 ? 'eggs' : 'egg'}`);
+    o.addons.forEach((a) => items.push(a));
+    o.sides.forEach((s) =>
+      items.push(s.count ? `${s.count} ${(s.count > 1 ? s.name : s.name.replace(/s$/, '')).toLowerCase()}` : s.name),
+    );
+    summary.replaceChildren(
+      ...items.map((t) => Object.assign(document.createElement('li'), { textContent: t.charAt(0).toUpperCase() + t.slice(1) })),
+    );
+    empty.hidden = !!o.egg || items.length > 0;
+
+    const need = missing(o);
+    const who = o.name.trim() && o.room ? `${o.name.trim()} · Room ${o.room}` : '';
+    status.textContent = who || (items.length ? 'Looking good' : 'Waiting for picks');
+    hint.textContent = need.length ? `Add ${list(need)} to send` : 'Sends your plate to the kitchen';
+    dockText.textContent = need.length ? `Add ${list(need)}` : `${items.length} ${items.length === 1 ? 'item' : 'items'} on your plate`;
+    sendButtons.forEach((b) => {
+      b.setAttribute('aria-disabled', String(need.length > 0 || sending));
+      b.textContent = sending ? 'Sending…' : 'Submit order';
+    });
+    notesCount.textContent = String(o.notes.length);
+  }
+
+  form.addEventListener('input', update);
+  form.addEventListener('change', update);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (sending) return;
+    const o = read();
+    const need = missing(o);
+    if (need.length) {
+      error.textContent = `Add ${list(need)} first.`;
+      const first = !o.name.trim() ? 'name' : !o.room ? 'room' : 'egg';
+      (form.querySelector(`[name="${first}"]`) as HTMLElement)?.focus();
+      return;
+    }
+    const checked = validateOrder(o);
+    if ('error' in checked) {
+      error.textContent = checked.error;
+      return;
+    }
+    error.textContent = '';
+    sending = true;
+    update();
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(checked.order),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        error.textContent = data?.error || 'Could not send your order. Please try again.';
+        return;
+      }
+      try {
+        localStorage.setItem('oakwell-guest', JSON.stringify({ name: o.name.trim(), room: o.room }));
+      } catch {}
+      body.hidden = true;
+      sent.hidden = false;
+      document.body.classList.add('order-sent');
+      sent.focus();
+    } catch {
+      error.textContent = 'Could not send your order — check your connection and try again.';
+    } finally {
+      sending = false;
+      update();
+    }
+  });
+
+  $('[data-again]').addEventListener('click', () => {
+    const keep = { name: read().name, room: read().room };
+    form.reset();
+    form.querySelector<HTMLInputElement>('[name="name"]')!.value = keep.name;
+    form.querySelector<HTMLSelectElement>('[name="room"]')!.value = keep.room;
+    sent.hidden = true;
+    body.hidden = false;
+    document.body.classList.remove('order-sent');
+    update();
+    form.querySelector<HTMLInputElement>('[name="egg"]')?.focus();
+  });
+
+  // On phones the dock carries the submit button until the plate card is on screen.
+  const dock = $('[data-dock]');
+  new IntersectionObserver(([entry]) => dock.classList.toggle('away', entry.isIntersecting), {
+    rootMargin: '0px 0px -10% 0px',
+  }).observe($('.plate-card'));
+
+  update();
+</script>
+
+<style>
+  .breakfast {
+    padding: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) 0 2rem;
+    background:
+      radial-gradient(60rem 40rem at 100% 0%, rgb(255 233 168 / 0.55), transparent 60%),
+      radial-gradient(50rem 40rem at 0% 70%, rgb(248 196 180 / 0.4), transparent 60%),
+      var(--cream-50);
+  }
+
+  .intro {
+    max-width: 40rem;
+    margin-bottom: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  }
+
+  h1 {
+    font-size: var(--step-hero);
+  }
+
+  .sub {
+    margin-top: 0.4rem;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1;
+    font-size: var(--step-2);
+    color: var(--sea);
+    line-height: 1.1;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0 1.1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chips li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: rgb(242 193 78 / 0.28);
+    box-shadow: inset 0 0 0 1px rgb(217 160 30 / 0.4);
+  }
+
+  .chips li:last-child {
+    background: rgb(29 111 130 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(29 111 130 / 0.22);
+  }
+
+  .chips span {
+    font-weight: 450;
+    color: var(--ink-soft);
+  }
+
+  .chips :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    color: var(--sea);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    align-items: start;
+  }
+
+  .steps {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .panel {
+    padding: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+    border-radius: 1.75rem;
+  }
+
+  .tint-sea {
+    background: linear-gradient(135deg, rgb(29 111 130 / 0.14), var(--cream-50) 55%, rgb(255 240 194 / 0.9));
+  }
+
+  .tint-yolk {
+    background: linear-gradient(160deg, rgb(255 233 168 / 0.9), var(--butter-soft) 50%, var(--cream-50));
+  }
+
+  .tint-peach {
+    background: linear-gradient(160deg, var(--apricot), rgb(255 240 194 / 0.6) 60%, var(--cream-50));
+  }
+
+  .tint-coral {
+    background: linear-gradient(160deg, var(--peach), rgb(245 196 168 / 0.5) 55%, var(--cream-50));
+  }
+
+  .tint-cream {
+    background: linear-gradient(160deg, var(--butter-soft), var(--cream-50) 60%, rgb(29 111 130 / 0.08));
+  }
+
+  .panel h2 {
+    font-size: var(--step-2);
+  }
+
+  .hint-text {
+    margin-top: 0.35rem;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .field > span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--sea-deep);
+  }
+
+  input[type='text'],
+  select,
+  textarea {
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid rgb(43 33 24 / 0.16);
+    border-radius: 1rem;
+    background: rgb(255 253 248 / 0.92);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  select {
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232b2118' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    background-size: 1.1rem;
+  }
+
+  textarea {
+    margin-top: 1.25rem;
+    resize: vertical;
+    min-height: 7rem;
+    line-height: 1.5;
+  }
+
+  ::placeholder {
+    color: var(--ink-mute);
+  }
+
+  input[type='text']:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--sea);
+    box-shadow: 0 0 0 4px rgb(29 111 130 / 0.16);
+  }
+
+  .counter {
+    margin-top: 0.4rem;
+    text-align: right;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+  }
+
+  .options {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+
+  .options.two {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-height: 3.75rem;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+    border: 1.5px solid rgb(43 33 24 / 0.1);
+    border-radius: 1.1rem;
+    background: rgb(255 253 248 / 0.8);
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  }
+
+  .option:hover {
+    border-color: rgb(43 33 24 / 0.28);
+    background: #fffdf8;
+  }
+
+  .option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .option:has(input:checked) {
+    border-color: var(--ink);
+    background: #fffdf8;
+    box-shadow: 0 8px 18px -12px rgb(43 33 24 / 0.45);
+  }
+
+  .option:has(input:focus-visible) {
+    outline: 2px solid var(--sea);
+    outline-offset: 2px;
+  }
+
+  .option:active {
+    transform: scale(0.99);
+  }
+
+  .mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1.75px solid rgb(43 33 24 / 0.35);
+    background: #fffdf8;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .mark-radio {
+    border-radius: 50%;
+  }
+
+  .mark-check {
+    border-radius: 0.4rem;
+  }
+
+  .mark :global(svg) {
+    width: 0.95rem;
+    height: 0.95rem;
+    stroke-width: 2.5;
+    color: var(--cream-50);
+    opacity: 0;
+  }
+
+  .option:has(input:checked) .mark {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+
+  .option:has(input:checked) .mark-radio {
+    background: radial-gradient(circle, var(--cream-50) 0 28%, var(--ink) 31%);
+  }
+
+  .option:has(input:checked) .mark :global(svg) {
+    opacity: 1;
+  }
+
+  .label {
+    flex: 1;
+    display: grid;
+    font-weight: 550;
+    line-height: 1.25;
+  }
+
+  .label small {
+    font-size: 0.82rem;
+    font-weight: 450;
+    color: var(--ink-soft);
+  }
+
+  .option :global(.food) {
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  .option:has(input:checked) :global(.food) {
+    transform: rotate(-8deg) scale(1.08);
+  }
+
+  .count-label {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--sea-deep);
+  }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .segmented label {
+    position: relative;
+  }
+
+  .segmented input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .segmented span {
+    display: grid;
+    place-items: center;
+    min-height: 3rem;
+    border: 1.5px solid rgb(43 33 24 / 0.12);
+    border-radius: 0.9rem;
+    background: rgb(255 253 248 / 0.8);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  }
+
+  .segmented label:hover span {
+    border-color: rgb(43 33 24 / 0.3);
+  }
+
+  .segmented input:checked + span {
+    border-color: var(--yolk-deep);
+    background: var(--yolk);
+    box-shadow: 0 6px 14px -8px rgb(217 160 30 / 0.9);
+  }
+
+  .segmented input:focus-visible + span {
+    outline: 2px solid var(--sea);
+    outline-offset: 2px;
+  }
+
+  .side {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .segmented.mini {
+    grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+    max-width: 12rem;
+    margin: 0 0 0.4rem 3.2rem;
+  }
+
+  .segmented.mini span {
+    min-height: 2.6rem;
+  }
+
+  .segmented[hidden] {
+    display: none;
+  }
+
+  /* Plate card */
+  .plate-card {
+    position: sticky;
+    top: 5.5rem;
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2rem);
+    border-radius: 1.75rem;
+    background: linear-gradient(170deg, rgb(255 240 194 / 0.95), #fffaf0 55%);
+    box-shadow: inset 0 0 0 1.5px rgb(217 160 30 / 0.45), var(--shadow-soft);
+  }
+
+  .plate-card h2 {
+    font-size: var(--step-2);
+  }
+
+  .status {
+    margin-top: 0.25rem;
+    min-height: 1.6em;
+    font-weight: 550;
+    color: var(--sea-deep);
+  }
+
+  .plate {
+    position: relative;
+    width: min(100%, 20rem);
+    aspect-ratio: 1;
+    margin: 1.25rem auto 1rem;
+  }
+
+  .dish {
+    width: 100%;
+    height: 100%;
+  }
+
+  .item {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--s);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    opacity: 0;
+    scale: 0.4;
+    rotate: -20deg;
+    transition: opacity 0.2s, scale 0.5s var(--ease-out), rotate 0.5s var(--ease-out);
+    pointer-events: none;
+    filter: drop-shadow(0 3px 2px rgb(43 33 24 / 0.15));
+  }
+
+  .item :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .item.on {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+  }
+
+  .empty {
+    position: absolute;
+    inset: 32% 22%;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--ink-soft);
+  }
+
+  .empty[hidden] {
+    display: none;
+  }
+
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    min-height: 1rem;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .summary li {
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: rgb(255 253 248 / 0.9);
+    box-shadow: inset 0 0 0 1px rgb(43 33 24 / 0.12);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .send {
+    width: 100%;
+  }
+
+  .btn[aria-disabled='true'] {
+    background: transparent;
+    border-color: rgb(43 33 24 / 0.28);
+    color: var(--ink-soft);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .send-hint {
+    margin-top: 0.6rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--ink-soft);
+  }
+
+  .error {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 550;
+    color: var(--danger);
+  }
+
+  .error:empty {
+    display: none;
+  }
+
+  .sent {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 0.5rem;
+    text-align: center;
+    outline: none;
+  }
+
+  .sent[hidden] {
+    display: none;
+  }
+
+  .sent :global(.sent-icon) {
+    width: 6rem;
+    height: 6rem;
+    animation: settle 0.8s var(--ease-out);
+  }
+
+  .sent p {
+    color: var(--ink-soft);
+    max-width: 26ch;
+  }
+
+  .sent .btn {
+    margin-top: 0.5rem;
+  }
+
+  @keyframes settle {
+    from {
+      scale: 0.5;
+      rotate: -30deg;
+      opacity: 0;
+    }
+  }
+
+  .dock {
+    display: none;
+  }
+
+  .served {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    margin-top: clamp(3rem, 2rem + 3vw, 4.5rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+
+  .served a {
+    font-weight: 550;
+  }
+
+  @media (max-width: 60rem) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .plate-card {
+      position: static;
+    }
+
+    .dock {
+      position: sticky;
+      bottom: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 1.5rem calc(-1 * var(--gutter)) 0;
+      padding: 0.75rem var(--gutter) calc(0.75rem + env(safe-area-inset-bottom));
+      background: rgb(251 246 238 / 0.94);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      transition: translate 0.35s var(--ease-out), opacity 0.35s;
+    }
+
+    .dock p {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      line-height: 1.3;
+    }
+
+    .dock .btn {
+      min-height: 2.9rem;
+      padding: 0 1.25rem;
+    }
+
+    .dock.away,
+    :global(.order-sent) .dock {
+      translate: 0 110%;
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .fields,
+    .options.two {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

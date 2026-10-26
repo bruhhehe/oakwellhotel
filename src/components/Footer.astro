@@ -1,0 +1,76 @@
+---
+import { Image } from 'astro:assets';
+import seaside from '../assets/oakwellbackground.png';
+import { site } from '../data/site';
+---
+<footer class="site-footer">
+  <Image src={seaside} alt="" class="sky" widths={[640, 941]} sizes="100vw" />
+  <div class="wrap row">
+    <p class="mark">Oakwell <em>Hotel</em> Blackpool</p>
+    <p>A family seaside stay · Alcohol-free hotel</p>
+  </div>
+  <div class="wrap row small">
+    <p>© {new Date().getFullYear()} {site.name} · {site.address}</p>
+    <p><a href="/breakfast">Breakfast</a> · <a href={`mailto:${site.email}`}>Email us</a></p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: clamp(6rem, 4rem + 8vw, 10rem) 0 2rem;
+    color: var(--ink);
+  }
+
+  /* The top of the same painting: the page closes on open sky */
+  .sky {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 14%;
+    mask: linear-gradient(to bottom, transparent, #000 60%);
+    opacity: 0.6;
+    filter: saturate(0.6) brightness(1.08);
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-block: 1rem;
+    border-top: 1px solid rgb(20 80 94 / 0.25);
+    font-weight: 500;
+  }
+
+  .mark {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  .mark em {
+    font-weight: 500;
+    color: var(--sea-deep);
+  }
+
+  .row:first-of-type {
+    align-items: baseline;
+  }
+
+  .small {
+    border-top: 0;
+    padding-top: 0;
+    font-size: 0.875rem;
+    color: var(--ink);
+  }
+
+  a {
+    color: var(--ink);
+  }
+</style>

@@ -1,0 +1,442 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Gallery from '../components/Gallery.astro';
+import GuestBook from '../components/GuestBook.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import seaside from '../assets/oakwellbackground.png';
+import map from '../assets/oakwellmap.png';
+import { site, whatsappUrl } from '../data/site';
+
+const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
+---
+<Base
+  title="Oakwell Hotel Blackpool | A Family Seaside Stay"
+  description="A family-friendly, alcohol-free hotel facing Blackpool's seafront, close to the beach, arcades, Pleasure Beach and Sandcastle Waterpark."
+  page="home"
+>
+  <main id="main">
+    <section id="top" class="hero" aria-labelledby="hero-title">
+      <Image
+        src={seaside}
+        alt=""
+        class="hero-art"
+        widths={[640, 941]}
+        sizes="100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="gulls" aria-hidden="true">
+        <svg class="gull g1" viewBox="0 0 24 12"><path d={gull} /></svg>
+        <svg class="gull g2" viewBox="0 0 24 12"><path d={gull} /></svg>
+        <svg class="gull g3" viewBox="0 0 24 12"><path d={gull} /></svg>
+      </div>
+
+      <div class="wrap hero-copy">
+        <h1 id="hero-title">Your Family Stay <span>by the Sea</span></h1>
+        <p class="lede">A welcoming, alcohol-free hotel moments from Blackpool’s beach and attractions.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href={whatsappUrl()} target="_blank" rel="noopener">
+            <Icon name="whatsapp" /> Book via WhatsApp
+          </a>
+          <a class="btn btn-ghost" href="#gallery">Take a look around</a>
+        </div>
+        <p class="facts">
+          <span>357 South Promenade</span>
+          <span class="wide-only">Facing the Irish Sea</span>
+          <span>Alcohol-free</span>
+        </p>
+      </div>
+    </section>
+
+    <Gallery />
+
+    <section id="location" class="location" aria-labelledby="location-title">
+      <div class="wrap location-grid">
+        <div class="location-copy">
+          <h2 id="location-title">Blackpool on Your Doorstep</h2>
+          <p>
+            We’re on South Promenade, looking straight out to sea. The beach, the arcades, Pleasure
+            Beach and Sandcastle Waterpark are all close by.
+          </p>
+          <address>
+            <Icon name="pin" />
+            <span>Oakwell Hotel<br />{site.address}</span>
+          </address>
+          <a class="maps-link" href={site.mapsUrl} target="_blank" rel="noopener">
+            Open in Google Maps <Icon name="external" />
+          </a>
+        </div>
+        <a class="map" href={site.mapsUrl} target="_blank" rel="noopener" aria-label="Open Oakwell Hotel in Google Maps">
+          <Image
+            src={map}
+            alt="Illustrated map of Blackpool seafront showing North, Central and South Pier, Blackpool Tower, Pleasure Beach, Sandcastle Waterpark and Oakwell Hotel on South Promenade"
+            widths={[640, 1000, 1428]}
+            sizes="(max-width: 60rem) 100vw, 44rem"
+          />
+        </a>
+      </div>
+    </section>
+
+    <GuestBook />
+
+    <section id="contact" class="contact" aria-labelledby="contact-title">
+      <div class="wrap contact-grid">
+        <div>
+          <h2 id="contact-title">Ready for a Seaside Stay?</h2>
+          <p class="lede">Send us your dates and group size, and we’ll take care of the rest.</p>
+          <a class="btn btn-primary" href={whatsappUrl()} target="_blank" rel="noopener">
+            <Icon name="whatsapp" /> Book via WhatsApp
+          </a>
+          <p class="note">We usually reply within a few hours.</p>
+        </div>
+        <dl class="details">
+          <div>
+            <dt><Icon name="whatsapp" /> WhatsApp</dt>
+            <dd><a href={whatsappUrl()} target="_blank" rel="noopener">Message the hosts</a></dd>
+          </div>
+          <div>
+            <dt><Icon name="mail" /> Email</dt>
+            <dd><a href={`mailto:${site.email}`}>{site.email}</a></dd>
+          </div>
+          <div>
+            <dt><Icon name="pin" /> Address</dt>
+            <dd>{site.address}</dd>
+          </div>
+          <div>
+            <dt><Icon name="clock" /> Breakfast</dt>
+            <dd>9:30–11:00 for staying guests. <a href="/breakfast">Order yours</a></dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: start;
+    min-height: max(40rem, 100svh);
+    padding-top: clamp(8rem, 5rem + 9vh, 11rem);
+    overflow: hidden;
+    background: var(--sky);
+  }
+
+  /* The painting: sky behind the words, the shore and rides along the bottom edge */
+  .hero :global(.hero-art) {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 88%;
+  }
+
+  /* Fade the sand into the cream page below */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 14%;
+    z-index: -1;
+    background: linear-gradient(to bottom, transparent, var(--cream-50));
+  }
+
+  .hero-copy {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  h1 {
+    max-width: 12ch;
+    font-size: var(--step-hero);
+    font-weight: 620;
+    line-height: 0.98;
+    letter-spacing: -0.028em;
+    text-shadow: 0 1px 24px rgb(251 246 238 / 0.55);
+  }
+
+  h1 span {
+    display: block;
+    font-style: italic;
+    font-weight: 500;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1;
+    color: var(--sea-deep);
+  }
+
+  .hero .lede {
+    margin-top: 1.4rem;
+    color: var(--ink);
+    text-shadow: 0 1px 14px rgb(251 246 238 / 0.9);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0;
+    margin-top: 1.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--sea-deep);
+  }
+
+  .facts span + span::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin: 0 0.8rem;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: middle;
+    opacity: 0.6;
+  }
+
+  .gulls {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .gull {
+    position: absolute;
+    fill: none;
+    stroke: #3d5c66;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.55;
+    animation: glide 26s ease-in-out infinite alternate;
+  }
+
+  .g1 {
+    top: 24%;
+    left: 12%;
+    width: 30px;
+  }
+
+  .g2 {
+    top: 18%;
+    right: 16%;
+    width: 22px;
+    animation-duration: 34s;
+    animation-delay: -8s;
+  }
+
+  .g3 {
+    top: 31%;
+    right: 24%;
+    width: 16px;
+    opacity: 0.4;
+    animation-duration: 40s;
+    animation-direction: alternate-reverse;
+  }
+
+  @keyframes glide {
+    0% {
+      transform: translate(0, 0) scaleY(1);
+    }
+    20% {
+      transform: translate(3vw, -10px) scaleY(0.7);
+    }
+    45% {
+      transform: translate(6vw, 4px) scaleY(1);
+    }
+    70% {
+      transform: translate(9vw, -6px) scaleY(0.75);
+    }
+    100% {
+      transform: translate(12vw, 2px) scaleY(1);
+    }
+  }
+
+  /* Location */
+  .location {
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) clamp(4rem, 3rem + 5vw, 7rem);
+    background: linear-gradient(to bottom, var(--cream-50), var(--foam));
+  }
+
+  .location-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: center;
+  }
+
+  .location h2 {
+    font-size: var(--step-1);
+    max-width: 10ch;
+  }
+
+  .location-copy > p {
+    margin-top: 1.25rem;
+    max-width: 36ch;
+    color: var(--ink-soft);
+  }
+
+  address {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-style: normal;
+    line-height: 1.5;
+  }
+
+  address :global(svg) {
+    flex: none;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-top: 0.1rem;
+    color: var(--sea);
+  }
+
+  .maps-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    margin-left: 2.05rem;
+    font-weight: 550;
+  }
+
+  .maps-link :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .map {
+    display: block;
+    border-radius: calc(var(--radius) * 1.4);
+    overflow: hidden;
+    box-shadow: var(--shadow-lift);
+    outline: 6px solid #fffdf8;
+    transition: transform 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+  }
+
+  .map:hover {
+    transform: translateY(-3px);
+  }
+
+  .map :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Contact */
+  .contact {
+    padding-block: clamp(4.5rem, 3rem + 6vw, 8rem) clamp(3rem, 2rem + 3vw, 4rem);
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(2.5rem, 1rem + 5vw, 6rem);
+    align-items: start;
+  }
+
+  .contact h2 {
+    font-size: var(--step-1);
+    max-width: 11ch;
+  }
+
+  .contact .lede {
+    margin: 1.25rem 0 2rem;
+  }
+
+  .note {
+    margin-top: 0.9rem;
+    font-size: 0.925rem;
+    color: var(--ink-soft);
+  }
+
+  .details {
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .details div {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 1rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  dt :global(svg) {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--sea);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 60rem) {
+    .location-grid,
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .location h2 {
+      max-width: 14ch;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .hero {
+      min-height: max(44rem, 100svh);
+      padding-top: 7rem;
+    }
+
+    .hero :global(.hero-art) {
+      object-position: 42% 100%;
+    }
+
+    .wide-only {
+      display: none;
+    }
+
+    .actions {
+      width: 100%;
+      flex-direction: column;
+    }
+
+    .actions .btn {
+      width: 100%;
+    }
+
+    .details div {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

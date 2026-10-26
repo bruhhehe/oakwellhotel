@@ -1,0 +1,633 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Breakfast Orders | Oakwell Hotel Blackpool" description="Kitchen queue for Oakwell breakfast orders." page="orders" noindex>
+  <main id="main" class="kitchen" data-view="checking">
+    <header class="top">
+      <div class="wrap top-bar">
+        <p class="brand">Oakwell <em>Hotel</em> <span>Kitchen</span></p>
+        <div class="top-actions" data-when="in">
+          <span class="updated" data-updated></span>
+          <button type="button" class="small-btn" data-refresh>Refresh</button>
+          <button type="button" class="small-btn" data-logout>Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <p class="checking wrap" data-when="checking">Checking access…</p>
+
+    <section class="login" data-when="out" aria-labelledby="login-title">
+      <form class="login-card" data-login>
+        <h1 id="login-title">Staff only</h1>
+        <p>Enter the staff password to see today’s queue.</p>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <p class="error" role="alert" data-login-error></p>
+        <button class="btn btn-primary" type="submit" data-login-btn>Open dashboard</button>
+        <a href="/">Back to the hotel site</a>
+      </form>
+    </section>
+
+    <div class="wrap board" data-when="in">
+      <div class="board-head">
+        <h1>Breakfast orders</h1>
+        <div class="tabs" role="tablist" aria-label="Filter orders">
+          <button role="tab" type="button" data-tab="pending" aria-selected="true">Pending <span data-n="pending">0</span></button>
+          <button role="tab" type="button" data-tab="done" aria-selected="false">Done <span data-n="done">0</span></button>
+          <button role="tab" type="button" data-tab="all" aria-selected="false">All <span data-n="all">0</span></button>
+        </div>
+      </div>
+      <p class="error" role="alert" data-board-error></p>
+
+      <div class="columns">
+        <aside class="totals" aria-labelledby="totals-title">
+          <h2 id="totals-title">To cook</h2>
+          <p class="totals-sub" data-totals-sub>Totals from pending plates</p>
+          <dl data-totals></dl>
+        </aside>
+        <ol class="queue" data-queue aria-live="polite"></ol>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+  type Order = {
+    id: number;
+    createdAt: number;
+    name: string;
+    room: string;
+    egg: string;
+    eggCount: number;
+    addons: string[];
+    sides: { name: string; count?: number }[];
+    notes: string;
+    status: 'pending' | 'done';
+    doneAt: number | null;
+  };
+
+  const main = document.querySelector<HTMLElement>('.kitchen')!;
+  const q = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const queue = q('[data-queue]');
+  const totals = q('[data-totals]');
+  const boardError = q('[data-board-error]');
+  let orders: Order[] = [];
+  let tab: 'pending' | 'done' | 'all' = 'pending';
+  let busy = new Set<number>();
+
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const time = (t: number) => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const ago = (t: number) => {
+    const m = Math.round((Date.now() - t) / 60000);
+    return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : time(t);
+  };
+  const eggLine = (o: Order) =>
+    o.egg === 'Omelette' ? `${o.eggCount}-egg omelette` : `${o.eggCount} × ${o.egg.toLowerCase().replace(' eggs', '')}`;
+
+  function show(view: 'checking' | 'in' | 'out') {
+    main.dataset.view = view;
+  }
+
+  async function load() {
+    const res = await fetch('/api/orders', { cache: 'no-store' }).catch(() => null);
+    if (!res) return void (boardError.textContent = 'Could not load orders — check the connection.');
+    if (res.status === 401) return show('out');
+    if (!res.ok) return void (boardError.textContent = 'Could not load orders');
+    orders = ((await res.json()) as { orders: Order[] }).orders;
+    boardError.textContent = '';
+    q('[data-updated]').textContent = `Updated ${time(Date.now())}`;
+    show('in');
+    render();
+  }
+
+  function render() {
+    const pending = orders.filter((o) => o.status === 'pending');
+    const done = orders.filter((o) => o.status === 'done');
+    q('[data-n="pending"]').textContent = String(pending.length);
+    q('[data-n="done"]').textContent = String(done.length);
+    q('[data-n="all"]').textContent = String(orders.length);
+    document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+
+    // What the kitchen needs for everything still pending
+    const need = new Map<string, number>();
+    const add = (k: string, n: number) => need.set(k, (need.get(k) || 0) + n);
+    pending.forEach((o) => {
+      add(o.egg, o.eggCount);
+      o.addons.forEach((a) => add(a, 1));
+      o.sides.forEach((s) => add(s.name, s.count ?? 1));
+    });
+    totals.innerHTML = need.size
+      ? [...need].map(([k, n]) => `<div><dt>${esc(k)}</dt><dd>${n}</dd></div>`).join('')
+      : '<p class="none">Nothing to cook.</p>';
+
+    const list = tab === 'pending' ? pending : tab === 'done' ? done : orders;
+    if (!list.length) {
+      queue.innerHTML = `<li class="empty">${tab === 'pending' ? 'No pending orders' : 'Nothing in this list yet.'}</li>`;
+      return;
+    }
+    queue.innerHTML = list
+      .map((o) => {
+        const i = pending.indexOf(o);
+        const sides = o.sides.map((s) => (s.count ? `${s.count} × ${s.name}` : s.name));
+        const dis = busy.has(o.id) ? 'disabled' : '';
+        return `<li class="ticket ${o.status}">
+          <div class="room"><span>Room</span>${esc(o.room)}</div>
+          <div class="ticket-body">
+            <p class="who"><strong>${esc(o.name)}</strong> <span>${o.status === 'done' && o.doneAt ? `done ${time(o.doneAt)}` : ago(o.createdAt)}</span></p>
+            <p class="eggs">${esc(eggLine(o))}</p>
+            <p class="extras">${o.addons.length ? esc(o.addons.join(', ')) : '<span class="muted">No add-ons</span>'}</p>
+            <p class="extras">${sides.length ? esc(sides.join(', ')) : '<span class="muted">No sides</span>'}</p>
+            ${o.notes ? `<p class="notes"><strong>Notes</strong> ${esc(o.notes)}</p>` : ''}
+          </div>
+          <div class="ticket-actions">
+            ${
+              o.status === 'pending'
+                ? `<button class="btn btn-primary" data-act="done" data-id="${o.id}" ${dis}>Mark done</button>
+                   <div class="move" role="group" aria-label="Queue position">
+                     <button class="icon-btn" data-act="up" data-id="${o.id}" aria-label="Move up the queue" ${i === 0 ? 'disabled' : dis}>
+                       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 10 8 6l4 4"/></svg></button>
+                     <button class="icon-btn" data-act="down" data-id="${o.id}" aria-label="Move down the queue" ${i === pending.length - 1 ? 'disabled' : dis}>
+                       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6 8 10l4-4"/></svg></button>
+                   </div>`
+                : `<button class="small-btn" data-act="undo" data-id="${o.id}" ${dis}>Undo</button>`
+            }
+          </div>
+        </li>`;
+      })
+      .join('');
+  }
+
+  queue.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    const act = btn.dataset.act!;
+    const body = act === 'done' ? { status: 'done' } : act === 'undo' ? { status: 'pending' } : { move: act };
+    busy.add(id);
+    render();
+    try {
+      const res = await fetch(`/api/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.status === 401) return show('out');
+      if (!res.ok) boardError.textContent = act === 'up' || act === 'down' ? 'Could not reorder' : 'Could not update order';
+    } catch {
+      boardError.textContent = 'Could not update order — check the connection.';
+    } finally {
+      busy.delete(id);
+      await load();
+    }
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) =>
+    b.addEventListener('click', () => {
+      tab = b.dataset.tab as typeof tab;
+      render();
+    }),
+  );
+
+  q('[data-refresh]').addEventListener('click', load);
+
+  q('[data-logout]').addEventListener('click', async () => {
+    await fetch('/api/orders/logout', { method: 'POST' }).catch(() => null);
+    orders = [];
+    show('out');
+  });
+
+  q<HTMLFormElement>('[data-login]').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const err = q('[data-login-error]');
+    const btn = q<HTMLButtonElement>('[data-login-btn]');
+    btn.disabled = true;
+    btn.textContent = 'Checking…';
+    err.textContent = '';
+    try {
+      const res = await fetch('/api/orders/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: new FormData(form).get('password') }),
+      });
+      if (!res.ok) {
+        err.textContent = ((await res.json().catch(() => null)) as { error?: string } | null)?.error || 'Could not log in';
+        return;
+      }
+      form.reset();
+      await load();
+    } catch {
+      err.textContent = 'Could not log in — check the connection.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Open dashboard';
+    }
+  });
+
+  // Keep the queue fresh on the kitchen tablet.
+  setInterval(() => main.dataset.view === 'in' && document.visibilityState === 'visible' && load(), 20000);
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && main.dataset.view === 'in' && load());
+  load();
+</script>
+
+<style>
+  .kitchen {
+    min-height: 100svh;
+    background: var(--cream-100);
+  }
+
+  [data-when] {
+    display: none !important;
+  }
+
+  [data-view='checking'] [data-when='checking'],
+  [data-view='out'] [data-when='out'] {
+    display: block !important;
+  }
+
+  [data-view='in'] [data-when='in'] {
+    display: revert !important;
+  }
+
+  [data-view='in'] .top-actions[data-when='in'] {
+    display: flex !important;
+  }
+
+  .top {
+    background: var(--ink);
+    color: var(--cream-50);
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4rem;
+  }
+
+  .brand {
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .brand em {
+    font-weight: 500;
+    color: var(--sky);
+  }
+
+  .brand span {
+    font-weight: 400;
+    opacity: 0.75;
+  }
+
+  .top-actions {
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .updated {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-right: 0.5rem;
+  }
+
+  .small-btn {
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 999px;
+    border: 1.5px solid currentColor;
+    background: transparent;
+    font-weight: 550;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .top .small-btn {
+    border-color: rgb(251 246 238 / 0.35);
+  }
+
+  .top .small-btn:hover {
+    background: var(--cream-50);
+    color: var(--ink);
+  }
+
+  .checking {
+    padding-block: 4rem;
+    color: var(--ink-soft);
+  }
+
+  .login {
+    padding: clamp(3rem, 2rem + 6vw, 7rem) var(--gutter);
+  }
+
+  .login-card {
+    display: grid;
+    gap: 1rem;
+    max-width: 24rem;
+    margin-inline: auto;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    background: var(--cream-50);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .login-card h1 {
+    font-size: var(--step-2);
+  }
+
+  .login-card p {
+    color: var(--ink-soft);
+  }
+
+  .login-card label {
+    display: grid;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .login-card input {
+    min-height: 3.25rem;
+    padding: 0 1rem;
+    border: 1.5px solid rgb(43 33 24 / 0.18);
+    border-radius: 1rem;
+    background: #fffdf8;
+    font-size: 1rem;
+  }
+
+  .login-card input:focus {
+    outline: none;
+    border-color: var(--sea);
+    box-shadow: 0 0 0 4px rgb(29 111 130 / 0.16);
+  }
+
+  .login-card a {
+    justify-self: center;
+    font-size: 0.9rem;
+  }
+
+  .error {
+    color: var(--danger);
+    font-weight: 550;
+    font-size: 0.925rem;
+  }
+
+  .error:empty {
+    display: none;
+  }
+
+  .board {
+    padding-block: 2rem 4rem;
+  }
+
+  .board-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .board-head h1 {
+    font-size: var(--step-2);
+  }
+
+  .tabs {
+    display: inline-flex;
+    padding: 0.25rem;
+    border-radius: 999px;
+    background: rgb(43 33 24 / 0.07);
+  }
+
+  .tabs button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font-weight: 550;
+    color: var(--ink-soft);
+  }
+
+  .tabs button span {
+    min-width: 1.5rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: rgb(43 33 24 / 0.08);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabs [aria-selected='true'] {
+    background: var(--cream-50);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgb(43 33 24 / 0.15);
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .totals {
+    position: sticky;
+    top: 1rem;
+    padding: 1.25rem 1.4rem;
+    border-radius: 1.25rem;
+    background: var(--butter-soft);
+    box-shadow: inset 0 0 0 1.5px rgb(217 160 30 / 0.4);
+  }
+
+  .totals h2 {
+    font-size: 1.4rem;
+  }
+
+  .totals-sub {
+    margin: 0.2rem 0 0.75rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  .totals dl {
+    margin: 0;
+  }
+
+  .totals :global(div) {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgb(43 33 24 / 0.1);
+  }
+
+  .totals :global(dd) {
+    margin: 0;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .totals :global(.none) {
+    color: var(--ink-soft);
+  }
+
+  .queue {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .queue :global(.ticket) {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    gap: 1.25rem;
+    align-items: start;
+    padding: 1.1rem 1.25rem;
+    border-radius: 1.25rem;
+    background: var(--cream-50);
+    box-shadow: 0 1px 2px rgb(43 33 24 / 0.08);
+  }
+
+  .queue :global(.ticket.done) {
+    opacity: 0.7;
+  }
+
+  .queue :global(.room) {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    border-radius: 1rem;
+    background: var(--sea);
+    color: var(--cream-50);
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .queue :global(.room span) {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-bottom: -0.6rem;
+  }
+
+  .queue :global(.who) {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+  }
+
+  .queue :global(.who span) {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  .queue :global(.eggs) {
+    margin-top: 0.2rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  .queue :global(.extras) {
+    color: var(--ink-soft);
+  }
+
+  .queue :global(.muted) {
+    opacity: 0.7;
+  }
+
+  .queue :global(.notes) {
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background: rgb(242 193 78 / 0.25);
+  }
+
+  .queue :global(.ticket-actions) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .queue :global(.ticket-actions .btn) {
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+  }
+
+  .queue :global(.move) {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .queue :global(.icon-btn) {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1.5px solid rgb(43 33 24 / 0.16);
+    border-radius: 0.5rem;
+    background: transparent;
+  }
+
+  .queue :global(.icon-btn svg) {
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .queue :global(.icon-btn:disabled) {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .queue :global(.empty) {
+    padding: 3rem 1rem;
+    border-radius: 1.25rem;
+    border: 1.5px dashed rgb(43 33 24 / 0.2);
+    text-align: center;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 48rem) {
+    .columns {
+      grid-template-columns: 1fr;
+    }
+
+    .totals {
+      position: static;
+    }
+
+    .queue :global(.ticket) {
+      grid-template-columns: 3.75rem minmax(0, 1fr);
+    }
+
+    .queue :global(.ticket-actions) {
+      grid-column: 1 / -1;
+      justify-content: flex-end;
+    }
+
+    .updated,
+    .brand span {
+      display: none;
+    }
+  }
+</style>

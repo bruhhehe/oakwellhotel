@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import Footer from '../components/Footer.astro';
+import { whatsappUrl } from '../data/site';
+---
+<Base title="Page not found | Oakwell Hotel Blackpool" description="This page has drifted out to sea." page="other" noindex>
+  <main id="main" class="lost wrap">
+    <h1>Drifted out to sea</h1>
+    <p class="lede">We couldn’t find that page. The beach, the rooms and the booking are all still here.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="/">Back to the hotel</a>
+      <a class="btn btn-ghost" href={whatsappUrl()} target="_blank" rel="noopener">Message us</a>
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .lost {
+    padding-block: clamp(5rem, 4rem + 8vw, 10rem) 2rem;
+  }
+
+  h1 {
+    font-size: var(--step-hero);
+    max-width: 10ch;
+  }
+
+  .lede {
+    margin-top: 1.25rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+</style>

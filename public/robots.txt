@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /orders
+Disallow: /api/
+
+Sitemap: https://oakwellhotel.com/sitemap-index.xml

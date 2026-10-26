@@ -1,0 +1,247 @@
+---
+import Icon from './Icon.astro';
+import { whatsappUrl } from '../data/site';
+
+interface Props {
+  page: 'home' | 'breakfast' | 'other';
+}
+const { page } = Astro.props;
+const home = page === 'home' ? '' : '/';
+const links = [
+  { href: page === 'home' ? '#top' : '/', label: 'Home' },
+  { href: '/breakfast', label: 'Breakfast', current: page === 'breakfast' },
+  { href: `${home}#gallery`, label: 'Gallery' },
+  { href: `${home}#location`, label: 'Location' },
+  { href: `${home}#reviews`, label: 'Reviews' },
+  { href: `${home}#contact`, label: 'Contact' },
+];
+---
+<header class:list={['site-header', { solid: page !== 'home' }]}>
+  <div class="wrap bar">
+    <a class="wordmark" href={page === 'home' ? '#top' : '/'}>
+      Oakwell <em>Hotel</em> <span>Blackpool</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        {links.map((l) => (
+          <li><a href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <a class="btn btn-primary header-book" href={whatsappUrl()} target="_blank" rel="noopener">
+      <Icon name="whatsapp" /> Book
+    </a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav">
+      <span class="sr-only">Menu</span>
+      <span class="bars" aria-hidden="true"><span></span><span></span></span>
+    </button>
+  </div>
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Main" hidden>
+    <ul class="wrap">
+      {links.map((l) => (
+        <li><a href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a></li>
+      ))}
+      <li>
+        <a class="btn btn-primary" href={whatsappUrl()} target="_blank" rel="noopener">
+          <Icon name="whatsapp" /> Book via WhatsApp
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const panel = document.getElementById('mobile-nav');
+  if (toggle && panel) {
+    const set = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      document.body.classList.toggle('menu-open', open);
+    };
+    toggle.addEventListener('click', () => set(panel.hidden === true));
+    panel.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) set(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.hidden) {
+        set(false);
+        toggle.focus();
+      }
+    });
+    matchMedia('(min-width: 60rem)').addEventListener('change', () => set(false));
+  }
+</script>
+
+<style>
+  .site-header {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 40;
+    padding-top: env(safe-area-inset-top);
+    background: linear-gradient(to bottom, rgb(251 246 238 / 0.92), rgb(251 246 238 / 0.55) 60%, transparent);
+  }
+
+  .site-header.solid {
+    position: sticky;
+    top: 0;
+    background: rgb(251 246 238 / 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 4.5rem;
+  }
+
+  .wordmark {
+    margin-right: auto;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 40;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .wordmark em {
+    font-weight: 500;
+    color: var(--sea);
+  }
+
+  .wordmark span {
+    font-weight: 450;
+    color: var(--ink-soft);
+  }
+
+  .nav ul,
+  .mobile-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav ul {
+    display: flex;
+    gap: 1.75rem;
+  }
+
+  .nav a {
+    position: relative;
+    color: var(--ink-soft);
+    font-size: 0.975rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .nav a::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -0.35rem;
+    height: 1.5px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s var(--ease-out);
+  }
+
+  .nav a:hover,
+  .nav a[aria-current='page'] {
+    color: var(--sea-deep);
+  }
+
+  .nav a:hover::after,
+  .nav a[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+
+  .header-book {
+    min-height: 2.6rem;
+    padding: 0 1.1rem;
+    font-size: 0.95rem;
+  }
+
+  .menu-toggle {
+    display: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgb(43 33 24 / 0.16);
+    border-radius: 999px;
+    background: var(--cream-50);
+  }
+
+  .bars {
+    display: grid;
+    gap: 5px;
+    width: 1.15rem;
+  }
+
+  .bars span {
+    height: 1.75px;
+    border-radius: 2px;
+    background: var(--ink);
+    transition: transform 0.3s var(--ease-out);
+  }
+
+  [aria-expanded='true'] .bars span:first-child {
+    transform: translateY(3.4px) rotate(45deg);
+  }
+
+  [aria-expanded='true'] .bars span:last-child {
+    transform: translateY(-3.4px) rotate(-45deg);
+  }
+
+  .mobile-nav {
+    border-block: 1px solid var(--line);
+    background: var(--cream-50);
+    box-shadow: 0 24px 40px -24px rgb(43 33 24 / 0.35);
+  }
+
+  .mobile-nav ul {
+    display: grid;
+    padding-block: 0.5rem 1.25rem;
+  }
+
+  .mobile-nav a:not(.btn) {
+    display: block;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .mobile-nav a[aria-current='page'] {
+    color: var(--sea);
+  }
+
+  .mobile-nav .btn {
+    width: 100%;
+    margin-top: 1.25rem;
+  }
+
+  @media (max-width: 59.99rem) {
+    .nav,
+    .header-book {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: grid;
+    }
+  }
+
+  @media (max-width: 24rem) {
+    .wordmark span {
+      display: none;
+    }
+  }
+</style>

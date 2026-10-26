@@ -1,0 +1,387 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import book from '../assets/reviewbook.png';
+import { reviews } from '../data/reviews';
+
+const star = 'M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-4.1 6-.8L12 3.2Z';
+---
+<section id="reviews" class="reviews" aria-labelledby="reviews-title">
+  <div class="wrap">
+    <h2 id="reviews-title">Kind Words from Our Guests</h2>
+
+    <div class="book" data-index="0" data-turning="">
+      <Image src={book} alt="" widths={[720, 1100, 1448]} sizes="(max-width: 40rem) 200vw, min(64rem, 100vw)" class="book-img" />
+      <span class="flip" aria-hidden="true"></span>
+
+      <ol class="pages" aria-live="polite">
+        {reviews.map((r, i) => (
+          <li class="page" data-page={i} data-side={i % 2 ? 'right' : 'left'} hidden={i > 1}>
+            <figure>
+              <svg class="stars" viewBox="0 0 120 24" role="img" aria-label="Five out of five stars">
+                {[0, 1, 2, 3, 4].map((n) => <path d={star} transform={`translate(${n * 24} 0)`} />)}
+              </svg>
+              <blockquote>“{r.quote}”</blockquote>
+              <figcaption>
+                <span class="name">{r.name}</span>
+                <span class="stay">{r.stay}</span>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ol>
+
+      <button class="turn turn-prev" type="button" aria-label="Previous page" data-dir="-1"></button>
+      <button class="turn turn-next" type="button" aria-label="Next page" data-dir="1"></button>
+    </div>
+
+    <div class="pager">
+      <button type="button" class="pager-btn" data-dir="-1">
+        <Icon name="arrow-left" /> Previous
+      </button>
+      <p class="count" aria-live="polite"><span data-count>1–2</span> of {reviews.length}</p>
+      <button type="button" class="pager-btn" data-dir="1">
+        Next <Icon name="arrow-right" />
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  const book = document.querySelector<HTMLElement>('.reviews .book');
+  if (book) {
+    const pages = [...book.querySelectorAll<HTMLElement>('.page')];
+    const count = document.querySelector<HTMLElement>('[data-count]');
+    const single = matchMedia('(max-width: 40rem)');
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    let index = 0;
+    let busy = false;
+
+    const step = () => (single.matches ? 1 : 2);
+
+    const render = () => {
+      const first = single.matches ? index : index - (index % 2);
+      pages.forEach((p, i) => (p.hidden = single.matches ? i !== first : i !== first && i !== first + 1));
+      book.dataset.index = String(index);
+      book.dataset.side = index % 2 ? 'right' : 'left';
+      if (count) count.textContent = single.matches ? String(first + 1) : `${first + 1}–${first + 2}`;
+    };
+
+    const go = (dir: number) => {
+      if (busy) return;
+      const n = pages.length;
+      const s = step();
+      const base = single.matches ? index : index - (index % 2);
+      index = (((base + dir * s) % n) + n) % n;
+      if (still.matches) return render();
+      busy = true;
+      book.dataset.turning = dir > 0 ? 'next' : 'prev';
+      setTimeout(render, 260);
+      setTimeout(() => {
+        book.dataset.turning = '';
+        busy = false;
+      }, 720);
+    };
+
+    document
+      .querySelectorAll<HTMLButtonElement>('.reviews [data-dir]')
+      .forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.dir))));
+
+    book.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    });
+
+    let startX = 0;
+    book.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
+    book.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+    });
+
+    single.addEventListener('change', render);
+    render();
+  }
+</script>
+
+<style>
+  .reviews {
+    padding-block: clamp(4.5rem, 3rem + 6vw, 8rem) clamp(2rem, 1rem + 3vw, 4rem);
+    background: linear-gradient(to bottom, var(--foam), var(--cream-50) 40%);
+  }
+
+  h2 {
+    font-size: var(--step-1);
+    text-align: center;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+  }
+
+  .book {
+    position: relative;
+    max-width: 64rem;
+    margin-inline: auto;
+    aspect-ratio: 1448 / 1055;
+    filter: drop-shadow(0 26px 30px rgb(43 33 24 / 0.2));
+    perspective: 2200px;
+  }
+
+  .book :global(.book-img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .pages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page {
+    position: absolute;
+    top: 9%;
+    bottom: 12%;
+    width: 36%;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    transition: opacity 0.26s ease, translate 0.26s ease;
+  }
+
+  .page[data-side='left'] {
+    left: 8.5%;
+  }
+
+  .page[data-side='right'] {
+    right: 9%;
+  }
+
+  .page[hidden] {
+    display: none;
+  }
+
+  [data-turning='next'] .page,
+  [data-turning='prev'] .page {
+    opacity: 0;
+  }
+
+  [data-turning='next'] .page {
+    translate: -0.75rem 0;
+  }
+
+  [data-turning='prev'] .page {
+    translate: 0.75rem 0;
+  }
+
+  figure {
+    margin: 0;
+    max-width: 21ch;
+    display: grid;
+    justify-items: center;
+    gap: clamp(0.6rem, 0.3rem + 1vw, 1.1rem);
+  }
+
+  .stars {
+    width: clamp(4.5rem, 3.5rem + 2vw, 5.75rem);
+    height: auto;
+    fill: var(--sand);
+  }
+
+  blockquote {
+    margin: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-variation-settings: 'SOFT' 100, 'WONK' 1;
+    font-size: clamp(0.9rem, 0.45rem + 1.25vw, 1.4rem);
+    line-height: 1.42;
+    color: var(--ink);
+  }
+
+  figcaption {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: clamp(0.8rem, 0.65rem + 0.35vw, 0.95rem);
+    color: var(--sea-deep);
+  }
+
+  .stay {
+    font-size: clamp(0.75rem, 0.62rem + 0.3vw, 0.875rem);
+    color: var(--ink-soft);
+  }
+
+  /* The turning leaf: a sheet of paper that swings across the spine */
+  .flip {
+    position: absolute;
+    top: 1.6%;
+    bottom: 5.5%;
+    left: 50%;
+    width: 45.5%;
+    border-radius: 0 0.6rem 0.6rem 0;
+    background: linear-gradient(90deg, #f3dfb0, #fdf1d2 18%, #fcefcd 70%, #f2dcaa);
+    transform-origin: left center;
+    opacity: 0;
+    pointer-events: none;
+    backface-visibility: visible;
+  }
+
+  [data-turning='next'] .flip {
+    animation: leaf-next 0.7s cubic-bezier(0.45, 0.05, 0.25, 1) forwards;
+  }
+
+  [data-turning='prev'] .flip {
+    left: auto;
+    right: 50%;
+    border-radius: 0.6rem 0 0 0.6rem;
+    transform-origin: right center;
+    animation: leaf-prev 0.7s cubic-bezier(0.45, 0.05, 0.25, 1) forwards;
+  }
+
+  @keyframes leaf-next {
+    0% {
+      opacity: 1;
+      transform: rotateY(0deg);
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(0.86);
+    }
+    95% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: rotateY(-180deg);
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes leaf-prev {
+    0% {
+      opacity: 1;
+      transform: rotateY(0deg);
+    }
+    50% {
+      filter: brightness(0.86);
+    }
+    95% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: rotateY(180deg);
+    }
+  }
+
+  .turn {
+    position: absolute;
+    inset-block: 0;
+    width: 50%;
+    border: 0;
+    background: transparent;
+  }
+
+  .turn-prev {
+    left: 0;
+    cursor: w-resize;
+  }
+
+  .turn-next {
+    right: 0;
+    cursor: e-resize;
+  }
+
+  .turn:focus-visible {
+    outline-offset: -6px;
+    border-radius: var(--radius);
+  }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-top: 1.75rem;
+  }
+
+  .pager-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border-radius: 999px;
+    border: 1.5px solid rgb(43 33 24 / 0.18);
+    background: var(--cream-50);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  }
+
+  .pager-btn :global(svg) {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .pager-btn:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--cream-50);
+  }
+
+  .count {
+    min-width: 6ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  /* Phones: one page of the book at a time, so the writing stays readable */
+  @media (max-width: 40rem) {
+    .book {
+      aspect-ratio: 724 / 1055;
+      overflow: hidden;
+      max-width: 26rem;
+    }
+
+    .book :global(.book-img) {
+      width: 200%;
+      max-width: none;
+      transition: translate 0.45s var(--ease-out);
+    }
+
+    .book[data-side='right'] :global(.book-img) {
+      translate: -50% 0;
+    }
+
+    .page,
+    .page[data-side] {
+      left: 15%;
+      right: 12%;
+      width: auto;
+      top: 8%;
+      bottom: 10%;
+    }
+
+    .book[data-side='right'] .page {
+      left: 10%;
+      right: 17%;
+    }
+
+    blockquote {
+      font-size: 1.15rem;
+    }
+
+    .flip {
+      display: none;
+    }
+  }
+</style>
