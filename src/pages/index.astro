@@ -8,8 +8,6 @@ import Icon from '../components/Icon.astro';
 import seaside from '../assets/oakwellbackground.png';
 import map from '../assets/oakwellmap.png';
 import { site, whatsappUrl } from '../data/site';
-
-const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
 ---
 <Base
   title="Oakwell Hotel Blackpool | A Family Seaside Stay"
@@ -27,26 +25,16 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
         loading="eager"
         fetchpriority="high"
       />
-      <div class="gulls" aria-hidden="true">
-        <svg class="gull g1" viewBox="0 0 24 12"><path d={gull} /></svg>
-        <svg class="gull g2" viewBox="0 0 24 12"><path d={gull} /></svg>
-        <svg class="gull g3" viewBox="0 0 24 12"><path d={gull} /></svg>
-      </div>
-
       <div class="wrap hero-copy">
-        <h1 id="hero-title">Your Family Stay <span>by the Sea</span></h1>
-        <p class="lede">A welcoming, alcohol-free hotel moments from Blackpool’s beach and attractions.</p>
+        <h1 id="hero-title">Your Family Stay by the Sea</h1>
+        <p class="lede">An alcohol-free family hotel with twelve rooms on South Promenade, facing the sea.</p>
         <div class="actions">
           <a class="btn btn-primary" href={whatsappUrl()} target="_blank" rel="noopener">
             <Icon name="whatsapp" /> Book via WhatsApp
           </a>
-          <a class="btn btn-ghost" href="#gallery">Take a look around</a>
+          <a class="btn btn-ghost" href="#gallery">See inside</a>
         </div>
-        <p class="facts">
-          <span>357 South Promenade</span>
-          <span class="wide-only">Facing the Irish Sea</span>
-          <span>Alcohol-free</span>
-        </p>
+        <p class="reply">Message us your dates and group size. We usually reply within a few hours.</p>
       </div>
     </section>
 
@@ -55,18 +43,20 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     <section id="location" class="location" aria-labelledby="location-title">
       <div class="wrap location-grid">
         <div class="location-copy">
-          <h2 id="location-title">Blackpool on Your Doorstep</h2>
+          <h2 id="location-title">Blackpool on your doorstep</h2>
           <p>
             We’re on South Promenade, looking straight out to sea. The beach, the arcades, Pleasure
             Beach and Sandcastle Waterpark are all close by.
           </p>
           <address>
             <Icon name="pin" />
-            <span>Oakwell Hotel<br />{site.address}</span>
+            <span>
+              Oakwell Hotel<br />{site.address}<br />
+              <a class="maps-link" href={site.mapsUrl} target="_blank" rel="noopener">
+                Open in Google Maps <Icon name="external" />
+              </a>
+            </span>
           </address>
-          <a class="maps-link" href={site.mapsUrl} target="_blank" rel="noopener">
-            Open in Google Maps <Icon name="external" />
-          </a>
         </div>
         <a class="map" href={site.mapsUrl} target="_blank" rel="noopener" aria-label="Open Oakwell Hotel in Google Maps">
           <Image
@@ -84,31 +74,20 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     <section id="contact" class="contact" aria-labelledby="contact-title">
       <div class="wrap contact-grid">
         <div>
-          <h2 id="contact-title">Ready for a Seaside Stay?</h2>
-          <p class="lede">Send us your dates and group size, and we’ll take care of the rest.</p>
-          <a class="btn btn-primary" href={whatsappUrl()} target="_blank" rel="noopener">
-            <Icon name="whatsapp" /> Book via WhatsApp
-          </a>
-          <p class="note">We usually reply within a few hours.</p>
+          <h2 id="contact-title">Message the hosts</h2>
+          <p class="lede">Tell us your dates and how many of you are coming. We usually reply within a few hours.</p>
+          <div class="contact-actions">
+            <a class="btn btn-primary" href={whatsappUrl()} target="_blank" rel="noopener">
+              <Icon name="whatsapp" /> Book via WhatsApp
+            </a>
+            <p>or email <a href={`mailto:${site.email}?subject=${encodeURIComponent('Booking enquiry')}`}>{site.email}</a></p>
+          </div>
         </div>
-        <dl class="details">
-          <div>
-            <dt><Icon name="whatsapp" /> WhatsApp</dt>
-            <dd><a href={whatsappUrl()} target="_blank" rel="noopener">Message the hosts</a></dd>
-          </div>
-          <div>
-            <dt><Icon name="mail" /> Email</dt>
-            <dd><a href={`mailto:${site.email}`}>{site.email}</a></dd>
-          </div>
-          <div>
-            <dt><Icon name="pin" /> Address</dt>
-            <dd>{site.address}</dd>
-          </div>
-          <div>
-            <dt><Icon name="clock" /> Breakfast</dt>
-            <dd>9:30–11:00 for staying guests. <a href="/breakfast">Order yours</a></dd>
-          </div>
-        </dl>
+        <aside class="breakfast-note" aria-labelledby="breakfast-title">
+          <h3 id="breakfast-title">Breakfast for staying guests</h3>
+          <p>£9.49 a plate, served 9:30–11:00. Build your plate from your phone and it goes straight to the kitchen.</p>
+          <a href="/breakfast">Order breakfast</a>
+        </aside>
       </div>
     </section>
   </main>
@@ -135,7 +114,15 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 88%;
+    object-position: 50% 100%;
+  }
+
+  /* Wide screens: the painting is width-bound and bottom-anchored, so the horizon sits about
+     34vw above the hero's bottom edge. Padding that band keeps every word over the sky. */
+  @media (min-width: 40rem) {
+    .hero {
+      padding-bottom: calc(34vw + 3rem);
+    }
   }
 
   /* Fade the sand into the cream page below */
@@ -163,15 +150,9 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     text-shadow: 0 1px 24px rgb(251 246 238 / 0.55);
   }
 
-  h1 span {
-    display: block;
-    font-style: italic;
-    font-weight: 500;
-    font-variation-settings: 'SOFT' 100, 'WONK' 1;
-    color: var(--sea-deep);
-  }
-
   .hero .lede {
+    max-width: 44ch;
+    text-wrap: balance;
     margin-top: 1.4rem;
     color: var(--ink);
     text-shadow: 0 1px 14px rgb(251 246 238 / 0.9);
@@ -185,85 +166,13 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     margin-top: 2rem;
   }
 
-  .facts {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.35rem 0;
-    margin-top: 1.75rem;
-    font-size: 0.9rem;
+  .reply {
+    margin-top: 1rem;
+    max-width: 34ch;
+    font-size: 0.95rem;
     font-weight: 500;
-    color: var(--sea-deep);
-  }
-
-  .facts span + span::before {
-    content: '';
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    margin: 0 0.8rem;
-    border-radius: 50%;
-    background: currentColor;
-    vertical-align: middle;
-    opacity: 0.6;
-  }
-
-  .gulls {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  .gull {
-    position: absolute;
-    fill: none;
-    stroke: #3d5c66;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    opacity: 0.55;
-    animation: glide 26s ease-in-out infinite alternate;
-  }
-
-  .g1 {
-    top: 24%;
-    left: 12%;
-    width: 30px;
-  }
-
-  .g2 {
-    top: 18%;
-    right: 16%;
-    width: 22px;
-    animation-duration: 34s;
-    animation-delay: -8s;
-  }
-
-  .g3 {
-    top: 31%;
-    right: 24%;
-    width: 16px;
-    opacity: 0.4;
-    animation-duration: 40s;
-    animation-direction: alternate-reverse;
-  }
-
-  @keyframes glide {
-    0% {
-      transform: translate(0, 0) scaleY(1);
-    }
-    20% {
-      transform: translate(3vw, -10px) scaleY(0.7);
-    }
-    45% {
-      transform: translate(6vw, 4px) scaleY(1);
-    }
-    70% {
-      transform: translate(9vw, -6px) scaleY(0.75);
-    }
-    100% {
-      transform: translate(12vw, 2px) scaleY(1);
-    }
+    color: var(--ink);
+    text-shadow: 0 1px 12px rgb(251 246 238 / 0.95);
   }
 
   /* Location */
@@ -312,8 +221,7 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    margin-top: 1.25rem;
-    margin-left: 2.05rem;
+    margin-top: 0.75rem;
     font-weight: 550;
   }
 
@@ -327,7 +235,6 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     border-radius: calc(var(--radius) * 1.4);
     overflow: hidden;
     box-shadow: var(--shadow-lift);
-    outline: 6px solid #fffdf8;
     transition: transform 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
   }
 
@@ -349,7 +256,7 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
     gap: clamp(2.5rem, 1rem + 5vw, 6rem);
-    align-items: start;
+    align-items: end;
   }
 
   .contact h2 {
@@ -361,46 +268,43 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
     margin: 1.25rem 0 2rem;
   }
 
-  .note {
-    margin-top: 0.9rem;
-    font-size: 0.925rem;
-    color: var(--ink-soft);
-  }
-
-  .details {
-    margin: 0;
-    border-top: 1px solid var(--line);
-  }
-
-  .details div {
-    display: grid;
-    grid-template-columns: 8.5rem 1fr;
-    gap: 1rem;
-    padding: 1.1rem 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  dt {
+  .contact-actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.55rem;
-    font-weight: 600;
-    font-size: 0.95rem;
+    gap: 0.75rem 1.25rem;
   }
 
-  dt :global(svg) {
-    width: 1.1rem;
-    height: 1.1rem;
-    color: var(--sea);
-  }
-
-  dd {
-    margin: 0;
+  .contact-actions p {
     color: var(--ink-soft);
-    overflow-wrap: anywhere;
+  }
+
+  .breakfast-note {
+    justify-self: end;
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--sand);
+    max-width: 30ch;
+  }
+
+  .breakfast-note h3 {
+    font-size: var(--step-3);
+    font-weight: 600;
+  }
+
+  .breakfast-note p {
+    margin: 0.5rem 0 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  .breakfast-note a {
+    font-weight: 550;
   }
 
   @media (max-width: 60rem) {
+    .breakfast-note {
+      justify-self: start;
+    }
+
     .location-grid,
     .contact-grid {
       grid-template-columns: 1fr;
@@ -421,10 +325,6 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
       object-position: 42% 100%;
     }
 
-    .wide-only {
-      display: none;
-    }
-
     .actions {
       width: 100%;
       flex-direction: column;
@@ -434,9 +334,5 @@ const gull = 'M2 9 Q7 2.5 12 7.5 Q17 2.5 22 9';
       width: 100%;
     }
 
-    .details div {
-      grid-template-columns: 1fr;
-      gap: 0.25rem;
-    }
   }
 </style>

@@ -3,24 +3,19 @@ import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
 import book from '../assets/reviewbook.png';
 import { reviews } from '../data/reviews';
-
-const star = 'M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-4.1 6-.8L12 3.2Z';
 ---
 <section id="reviews" class="reviews" aria-labelledby="reviews-title">
   <div class="wrap">
-    <h2 id="reviews-title">Kind Words from Our Guests</h2>
+    <h2 id="reviews-title">Kind words from our guests</h2>
 
     <div class="book" data-index="0" data-turning="">
-      <Image src={book} alt="" widths={[720, 1100, 1448]} sizes="(max-width: 40rem) 200vw, min(64rem, 100vw)" class="book-img" />
+      <Image src={book} alt="" widths={[720, 1100, 1448]} sizes="(max-width: 40rem) 200vw, min(56rem, 100vw)" class="book-img" />
       <span class="flip" aria-hidden="true"></span>
 
-      <ol class="pages" aria-live="polite">
+      <ol class="pages">
         {reviews.map((r, i) => (
           <li class="page" data-page={i} data-side={i % 2 ? 'right' : 'left'} hidden={i > 1}>
             <figure>
-              <svg class="stars" viewBox="0 0 120 24" role="img" aria-label="Five out of five stars">
-                {[0, 1, 2, 3, 4].map((n) => <path d={star} transform={`translate(${n * 24} 0)`} />)}
-              </svg>
               <blockquote>“{r.quote}”</blockquote>
               <figcaption>
                 <span class="name">{r.name}</span>
@@ -31,8 +26,8 @@ const star = 'M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-
         ))}
       </ol>
 
-      <button class="turn turn-prev" type="button" aria-label="Previous page" data-dir="-1"></button>
-      <button class="turn turn-next" type="button" aria-label="Next page" data-dir="1"></button>
+      <button class="turn turn-prev" type="button" tabindex="-1" aria-hidden="true" data-dir="-1"></button>
+      <button class="turn turn-next" type="button" tabindex="-1" aria-hidden="true" data-dir="1"></button>
     </div>
 
     <div class="pager">
@@ -87,11 +82,6 @@ const star = 'M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-
       .querySelectorAll<HTMLButtonElement>('.reviews [data-dir]')
       .forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.dir))));
 
-    book.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') go(1);
-      if (e.key === 'ArrowLeft') go(-1);
-    });
-
     let startX = 0;
     book.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
     book.addEventListener('touchend', (e) => {
@@ -106,19 +96,19 @@ const star = 'M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-
 
 <style>
   .reviews {
-    padding-block: clamp(4.5rem, 3rem + 6vw, 8rem) clamp(2rem, 1rem + 3vw, 4rem);
+    padding-block: clamp(3rem, 2rem + 4vw, 5.5rem) clamp(2rem, 1rem + 3vw, 4rem);
     background: linear-gradient(to bottom, var(--foam), var(--cream-50) 40%);
   }
 
   h2 {
-    font-size: var(--step-1);
+    font-size: var(--step-2);
     text-align: center;
-    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+    margin-bottom: clamp(1.25rem, 1rem + 1.5vw, 2rem);
   }
 
   .book {
     position: relative;
-    max-width: 64rem;
+    max-width: 56rem;
     margin-inline: auto;
     aspect-ratio: 1448 / 1055;
     filter: drop-shadow(0 26px 30px rgb(43 33 24 / 0.2));
@@ -184,19 +174,13 @@ const star = 'M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6l-5.3 2.9 1.1-5.9-4.4-
     gap: clamp(0.6rem, 0.3rem + 1vw, 1.1rem);
   }
 
-  .stars {
-    width: clamp(4.5rem, 3.5rem + 2vw, 5.75rem);
-    height: auto;
-    fill: var(--sand);
-  }
-
   blockquote {
     margin: 0;
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-variation-settings: 'SOFT' 100, 'WONK' 1;
-    font-size: clamp(0.9rem, 0.45rem + 1.25vw, 1.4rem);
+    font-size: clamp(0.95rem, 0.5rem + 1.3vw, 1.5rem);
     line-height: 1.42;
     color: var(--ink);
   }

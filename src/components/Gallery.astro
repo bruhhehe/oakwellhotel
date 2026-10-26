@@ -8,7 +8,7 @@ const widths = { portrait: 300, square: 400, landscape: 570 } as const;
 ---
 <section id="gallery" class="gallery" aria-labelledby="gallery-title">
   <div class="wrap section-head">
-    <h2 id="gallery-title">Take a Look Around</h2>
+    <h2 id="gallery-title">Take a look around</h2>
     <div class="controls">
       <button class="nav-btn" type="button" data-dir="-1" aria-label="Previous photos" aria-controls="gallery-track">
         <Icon name="arrow-left" />
@@ -98,12 +98,6 @@ const widths = { portrait: 300, square: 400, landscape: 570 } as const;
   .nav-btn:disabled {
     opacity: 0.35;
     cursor: default;
-  }
-
-  @media (max-width: 40rem) {
-    .controls {
-      display: none;
-    }
   }
 
   .track {

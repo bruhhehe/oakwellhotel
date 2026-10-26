@@ -7,11 +7,13 @@ import { site } from '../data/site';
   <Image src={seaside} alt="" class="sky" widths={[640, 941]} sizes="100vw" />
   <div class="wrap row">
     <p class="mark">Oakwell <em>Hotel</em> Blackpool</p>
-    <p>A family seaside stay · Alcohol-free hotel</p>
+    <ul class="links">
+      <li><a href="/breakfast">Breakfast</a></li>
+      <li><a href={`mailto:${site.email}`}>Email us</a></li>
+    </ul>
   </div>
   <div class="wrap row small">
-    <p>© {new Date().getFullYear()} {site.name} · {site.address}</p>
-    <p><a href="/breakfast">Breakfast</a> · <a href={`mailto:${site.email}`}>Email us</a></p>
+    <p>© {new Date().getFullYear()} {site.name}</p>
   </div>
 </footer>
 
@@ -68,6 +70,14 @@ import { site } from '../data/site';
     padding-top: 0;
     font-size: 0.875rem;
     color: var(--ink);
+  }
+
+  .links {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   a {
