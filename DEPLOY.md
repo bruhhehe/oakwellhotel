@@ -4,19 +4,11 @@ The site is static Astro pages served by a Cloudflare Worker. The Worker also ru
 order API (`/api/orders`), which stores plates in a D1 database. Every push to `main` rebuilds and
 publishes it once the repo is connected.
 
-## 1. Create the orders database (once)
+## 1. The orders database
 
-```sh
-npx wrangler login
-npx wrangler d1 create oakwell-orders
-```
-
-Copy the `database_id` it prints into `wrangler.jsonc` (replace the `0000…` placeholder), commit,
-then create the table:
-
-```sh
-npm run db:migrate
-```
+Nothing to do. `wrangler.jsonc` names a D1 database (`oakwell-orders`) without an id, so the
+first deploy creates it and later deploys reuse it. The Worker creates its `orders` table the first
+time it is used (`worker/schema.ts`).
 
 ## 2. Connect the repo in Cloudflare
 
@@ -65,6 +57,5 @@ Orders placed on the old Vercel site are not copied over; the queue starts empty
 npm install
 npm run dev                 # pages only, at localhost:4321 (order sending will fail: no API)
 echo 'STAFF_PASSWORD="test"' > .dev.vars
-npx wrangler d1 migrations apply oakwell-orders --local
 npm run preview             # full site + API + local database, at localhost:8787
 ```

@@ -14,10 +14,9 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "oakwell-orders",
-      // Replace with the id printed by `npx wrangler d1 create oakwell-orders` (see DEPLOY.md).
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
+      // No database_id: `wrangler deploy` creates this database on the first deploy and
+      // reuses it after that. The Worker creates its table on first use (worker/schema.ts).
+      "database_name": "oakwell-orders"
     }
   ],
   "observability": { "enabled": true },

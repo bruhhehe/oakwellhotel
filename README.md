@@ -27,4 +27,3 @@ number in `src/data/site.ts`, with the country code and no `+` (for example `447
 - `npm run dev`: local pages at localhost:4321
 - `npm run preview`: build, then run the full site with the order API through Wrangler
 - `npm run check`: type check plus tests
-- `npm run db:migrate`: apply database migrations to the live D1 database

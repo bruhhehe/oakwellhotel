@@ -7,6 +7,7 @@
 import type { D1Database } from '@cloudflare/workers-types';
 import { validateOrder } from '../src/data/menu.ts';
 import { clearCookie, isStaff, safeEqual, sessionCookie } from './auth.ts';
+import { ensureSchema } from './schema.ts';
 
 export interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
@@ -74,6 +75,7 @@ export async function handleOrders(request: Request, env: Env, url: URL): Promis
   }
 
   if (path === '/api/orders' && method === 'POST') {
+    await ensureSchema(env.DB);
     const checked = validateOrder(await readJson(request));
     if ('error' in checked) return json({ error: checked.error }, 400);
     const o = checked.order;
@@ -96,6 +98,7 @@ export async function handleOrders(request: Request, env: Env, url: URL): Promis
   }
 
   if (!(await isStaff(request, env.STAFF_PASSWORD))) return json({ error: 'Unauthorized' }, 401);
+  await ensureSchema(env.DB);
 
   if (path === '/api/orders' && method === 'GET') {
     const { results } = await env.DB.prepare(

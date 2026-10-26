@@ -8,8 +8,7 @@
     "build": "astro build",
     "preview": "npm run build && wrangler dev",
     "check": "astro check && node --test tests/*.test.ts",
-    "test": "node --test tests/*.test.ts",
-    "db:migrate": "wrangler d1 migrations apply oakwell-orders --remote"
+    "test": "node --test tests/*.test.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
