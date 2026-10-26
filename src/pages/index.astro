@@ -115,6 +115,41 @@ import { site, whatsappUrl } from '../data/site';
     height: 100%;
     object-fit: cover;
     object-position: 50% 100%;
+    transform-origin: 50% 70%;
+    animation: haze-lifts 1.8s var(--ease-out) both;
+  }
+
+  /* The one authored moment: the painting comes into focus like sea haze burning off,
+     and the words rise in just behind it. Everything is visible without the animation. */
+  @keyframes haze-lifts {
+    from {
+      transform: scale(1.07);
+      filter: blur(10px) saturate(0.75) brightness(1.08);
+    }
+  }
+
+  .hero-copy > * {
+    animation: rise-in 0.9s var(--ease-out) both;
+  }
+
+  .hero-copy > :nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .hero-copy > :nth-child(3) {
+    animation-delay: 0.32s;
+  }
+
+  .hero-copy > :nth-child(4) {
+    animation-delay: 0.46s;
+  }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+      filter: blur(4px);
+    }
   }
 
   /* Wide screens: the painting is width-bound and bottom-anchored, so the horizon sits about

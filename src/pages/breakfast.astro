@@ -330,6 +330,18 @@ const sideNotes: Record<string, string> = {
       try {
         localStorage.setItem('oakwell-guest', JSON.stringify({ name: o.name.trim(), room: o.room }));
       } catch {}
+      // The plate slides off to the kitchen before the confirmation appears.
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        await $('[data-plate]')
+          .animate(
+            [
+              { transform: 'none', opacity: 1 },
+              { transform: 'translate(55%, -8%) rotate(18deg) scale(0.7)', opacity: 0 },
+            ],
+            { duration: 480, easing: 'cubic-bezier(0.55, 0, 0.75, 0.2)' },
+          )
+          .finished.catch(() => {});
+      }
       body.hidden = true;
       sent.hidden = false;
       document.body.classList.add('order-sent');
@@ -727,6 +739,17 @@ const sideNotes: Record<string, string> = {
     display: none;
   }
 
+  .segmented.mini:not([hidden]) {
+    animation: count-in 0.3s var(--ease-out);
+  }
+
+  @keyframes count-in {
+    from {
+      opacity: 0;
+      translate: 0 -0.4rem;
+    }
+  }
+
   /* Plate card */
   .plate-card {
     position: sticky;
@@ -852,6 +875,7 @@ const sideNotes: Record<string, string> = {
   }
 
   .sent {
+    animation: sent-in 0.5s var(--ease-out);
     display: grid;
     justify-items: center;
     gap: 0.75rem;
@@ -877,6 +901,13 @@ const sideNotes: Record<string, string> = {
 
   .sent .btn {
     margin-top: 0.5rem;
+  }
+
+  @keyframes sent-in {
+    from {
+      opacity: 0;
+      translate: 0 0.75rem;
+    }
   }
 
   @keyframes settle {

@@ -240,7 +240,36 @@ button {
   max-width: 34ch;
 }
 
+/* Soft crossfade between the home page and breakfast */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 0.25s ease-in both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 0.4s var(--ease-out) both fade-in;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+
   html {
     scroll-behavior: auto;
   }

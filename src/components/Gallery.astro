@@ -49,6 +49,22 @@ const widths = { portrait: 300, square: 400, landscape: 570 } as const;
     });
   });
 
+  // The first time the gallery comes into view, the polaroids are pinned up one by one.
+  const gallery = document.querySelector<HTMLElement>('.gallery');
+  if (gallery && !matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const rect = gallery.getBoundingClientRect();
+    if (rect.top > innerHeight) {
+      gallery.classList.add('pinning');
+      const io = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        gallery.classList.add('pinned');
+        io.disconnect();
+        setTimeout(() => gallery.classList.remove('pinning', 'pinned'), 1600);
+      }, { threshold: 0.25 });
+      io.observe(gallery);
+    }
+  }
+
   const update = () => {
     if (!track) return;
     const max = track.scrollWidth - track.clientWidth - 2;
@@ -136,6 +152,40 @@ const widths = { portrait: 300, square: 400, landscape: 570 } as const;
     box-shadow: var(--shadow-soft);
     transform: rotate(var(--tilt));
     transition: transform 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
+  }
+
+  .pinning figure {
+    opacity: 0;
+    translate: 0 -2.5rem;
+    rotate: calc(var(--tilt) * -4);
+    transition:
+      opacity 0.5s ease,
+      translate 0.8s var(--ease-out),
+      rotate 0.9s var(--ease-out),
+      transform 0.6s var(--ease-out),
+      box-shadow 0.6s var(--ease-out);
+  }
+
+  .pinned figure {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+
+  .pinning .photo:nth-child(2) figure { transition-delay: 0.08s; }
+  .pinning .photo:nth-child(3) figure { transition-delay: 0.16s; }
+  .pinning .photo:nth-child(4) figure { transition-delay: 0.24s; }
+  .pinning .photo:nth-child(n + 5) figure { transition-delay: 0.32s; }
+
+  .pinning .tape {
+    opacity: 0;
+    scale: 1.3;
+    transition: opacity 0.3s ease 0.55s, scale 0.4s var(--ease-out) 0.55s;
+  }
+
+  .pinned .tape {
+    opacity: 1;
+    scale: 1;
   }
 
   .photo:hover figure {

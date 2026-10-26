@@ -71,6 +71,22 @@ const links = [
     });
     matchMedia('(min-width: 60rem)').addEventListener('change', () => set(false));
   }
+
+  // Home: once the hero is behind you, the header slides down and stays, so Book is always in reach.
+  const header = document.querySelector<HTMLElement>('.site-header:not(.solid)');
+  const hero = document.getElementById('top');
+  if (header && hero) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    new IntersectionObserver(([entry]) => {
+      const stuck = !entry.isIntersecting;
+      if (stuck === header.classList.contains('stuck')) return;
+      if (stuck) return header.classList.add('stuck');
+      if (still.matches) return header.classList.remove('stuck');
+      header
+        .animate([{ transform: 'none' }, { transform: 'translateY(-100%)' }], { duration: 200, easing: 'ease-in' })
+        .finished.then(() => header.classList.remove('stuck'));
+    }, { rootMargin: '-40% 0px 0px 0px' }).observe(hero);
+  }
 </script>
 
 <style>
@@ -80,6 +96,21 @@ const links = [
     z-index: 40;
     padding-top: env(safe-area-inset-top);
     background: linear-gradient(to bottom, rgb(251 246 238 / 0.92), rgb(251 246 238 / 0.55) 60%, transparent);
+  }
+
+  .site-header.stuck {
+    position: fixed;
+    background: rgb(251 246 238 / 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 10px 30px -22px rgb(43 33 24 / 0.5);
+    animation: header-in 0.45s var(--ease-out);
+  }
+
+  @keyframes header-in {
+    from {
+      transform: translateY(-100%);
+    }
   }
 
   .site-header.solid {
