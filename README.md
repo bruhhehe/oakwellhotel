@@ -7,8 +7,9 @@ The website for Oakwell, a family-run, alcohol-free hotel on South Promenade, Bl
 - `/breakfast`: guests build a breakfast plate and send it to the kitchen.
 - `/orders`: the staff kitchen queue (password protected).
 
-Built with Astro and served by a Cloudflare Worker with a D1 database for orders. Deployment steps
-are in [DEPLOY.md](DEPLOY.md).
+Built with Astro. Hosted on Cloudflare (a Worker with a D1 database for orders) and on Vercel (the
+same pages, with `/api/orders` passed through to the Worker so both share one kitchen queue).
+Deployment steps are in [DEPLOY.md](DEPLOY.md).
 
 ## Editing content
 

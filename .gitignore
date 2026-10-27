@@ -9,3 +9,4 @@ dist/
 # impeccable working files (screenshots, mocks)
 .impeccable/review/
 .impeccable/mocks/
+.vercel/
